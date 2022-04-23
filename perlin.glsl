@@ -1,4 +1,4 @@
-#version 150
+#version 140
 precision mediump float;
 
 uniform float time;

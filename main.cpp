@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Glsl.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <iostream>
+#include <string>
 #include <time.h>
 #include <chrono>
 #include <thread>
@@ -9,8 +11,8 @@
 using std::chrono::milliseconds;
 
 // Create a a new window
-void openWindow(char* fileName) {
-	sf::RenderWindow window(sf::VideoMode(700, 700), std::string("FragViewer - ") + fileName);
+void openWindow(std::string fragName, std::string vertexName) {
+	sf::RenderWindow window(sf::VideoMode(700, 700), std::string("FragViewer - ") + fragName);
 	window.setFramerateLimit(144);
 	window.setVerticalSyncEnabled(false);
 
@@ -20,7 +22,7 @@ void openWindow(char* fileName) {
 
 	sf::Shader shader;
 	// load only the fragment shader
-	if (!shader.loadFromFile(fileName, sf::Shader::Fragment))
+	if (!shader.loadFromFile(vertexName, fragName))
 		exit(1);
 
 	// Active loop
@@ -49,23 +51,32 @@ void openWindow(char* fileName) {
 // Main program entry point
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
-		std::cerr << "Expected 1 or more argument(s) of fragement shader file path." << std::endl;
+		std::cerr << "Expected at least a fragment shader filepath" << std::endl;
 		exit(1);
 	}
 	
 
-	std::vector<std::thread> threads;
+	//std::vector<std::thread> threads;
 
 	// Open all the windows in their own threads
-	for (int i=1;i<argc;i++) {
-    	threads.push_back(std::thread(&openWindow, argv[i]));
-    }
+	// for (int i=1;i<argc;i++) {
+    // 	//threads.push_back(std::thread(&openWindow, argv[i])); // 
+		
+    // }
 
-	// Wait for all the threads to close
-	for (int i=1;i<argc;i++) {
-    	threads.back().join();
-		threads.pop_back();
-    }
+	// // Wait for all the threads to close
+	// for (int i=1;i<argc;i++) {
+    // 	threads.back().join();
+	// 	threads.pop_back();
+    // }
+
+	std::string vertexShader = "BaseVertShader.vert";
+
+	if (argc >= 3) {
+		vertexShader = argv[2];
+	}
+
+	openWindow(argv[1], vertexShader);
 
     return 0;
 }

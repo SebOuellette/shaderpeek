@@ -33,5 +33,5 @@
 shaderpeek
 
 # Testing shaders
-# *.frag
-# *.glsl
+*.frag
+*.glsl

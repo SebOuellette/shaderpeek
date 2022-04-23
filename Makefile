@@ -9,3 +9,6 @@ shaderpeek: main.o
 
 main.o: main.cpp
 	$(CXX) -c main.cpp -o main.o
+
+clean:
+	rm shaderpeek *.o
