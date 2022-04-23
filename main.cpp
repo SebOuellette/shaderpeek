@@ -1,12 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Glsl.hpp>
-#include <SFML/System/Vector2.hpp>
 #include <iostream>
 #include <string>
 #include <time.h>
 #include <chrono>
-#include <thread>
-#include <vector>
+
+#include <libgen.h>         // dirname
+#include <unistd.h>         // readlink
+#include <linux/limits.h>   // PATH_MAX
 
 using std::chrono::milliseconds;
 
@@ -37,9 +38,14 @@ void openWindow(std::string fragName, std::string vertexName) {
 		// Pass variables to shaders for them to use
 		float time = std::chrono::duration_cast<milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() % 10000000 / 1000.f;
 
+		// Generate a cursor position to use in a shader (origin is bottom left)
+		sf::Vector2f cursorPos = sf::Vector2f(sf::Mouse::getPosition() - window.getPosition());
+		cursorPos.y = window.getSize().y - cursorPos.y;
+
+
 		shader.setUniform("time", time);
 		shader.setUniform("resolution", sf::Glsl::Vec2(window.getSize()));
-		shader.setUniform("cursor", sf::Glsl::Vec2(sf::Mouse::getPosition()));
+		shader.setUniform("cursor", sf::Glsl::Vec2(cursorPos));
 
 		// Clear the last frame, and draw the current one
 		window.clear();
@@ -56,21 +62,15 @@ int main(int argc, char *argv[]) {
 	}
 	
 
-	//std::vector<std::thread> threads;
+	// Get the file path for this current program
+	char result[PATH_MAX];
+	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+	std::string path;
+	if (count != -1) {
+		path = dirname(result);
+	}
 
-	// Open all the windows in their own threads
-	// for (int i=1;i<argc;i++) {
-    // 	//threads.push_back(std::thread(&openWindow, argv[i])); // 
-		
-    // }
-
-	// // Wait for all the threads to close
-	// for (int i=1;i<argc;i++) {
-    // 	threads.back().join();
-	// 	threads.pop_back();
-    // }
-
-	std::string vertexShader = "BaseVertShader.vert";
+	std::string vertexShader = path + "/BaseVertShader.vert";
 
 	if (argc >= 3) {
 		vertexShader = argv[2];
