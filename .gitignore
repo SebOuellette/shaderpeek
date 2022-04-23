@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+shaderpeek
+
+# Testing shaders
+*.frag
