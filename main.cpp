@@ -35,7 +35,7 @@ void openWindow(char* fileName) {
 		}
 
 		// Pass variables to shaders for them to use
-		float time = std::chrono::duration_cast<milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() % 100000000 / 1000.f;
+		float time = std::chrono::duration_cast<milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() % 10000000 / 1000.f;
 
 		shader.setUniform("time", time);
 		shader.setUniform("resolution", sf::Glsl::Vec2(window.getSize()));
