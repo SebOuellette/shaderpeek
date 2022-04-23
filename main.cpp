@@ -1,8 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Glsl.hpp>
-#include <SFML/Graphics/Texture.hpp>
 #include <iostream>
-#include <stdio.h>
 #include <time.h>
 #include <chrono>
 #include <thread>
