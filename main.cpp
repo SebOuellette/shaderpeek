@@ -26,6 +26,8 @@ void openWindow(std::string fragName, std::string vertexName) {
 	if (!shader.loadFromFile(vertexName, fragName))
 		exit(1);
 
+	int frame = 0;
+
 	// Active loop
 	while (window.isOpen()) {
 		// Poll for any events (clicking the window close button in this case)
@@ -46,6 +48,9 @@ void openWindow(std::string fragName, std::string vertexName) {
 		shader.setUniform("time", time);
 		shader.setUniform("resolution", sf::Glsl::Vec2(window.getSize()));
 		shader.setUniform("cursor", sf::Glsl::Vec2(cursorPos));
+		shader.setUniform("frame", frame++);
+		shader.setUniform("mouseL", sf::Mouse::isButtonPressed(sf::Mouse::Left));
+		shader.setUniform("mouseR", sf::Mouse::isButtonPressed(sf::Mouse::Right));
 
 		// Clear the last frame, and draw the current one
 		window.clear();
