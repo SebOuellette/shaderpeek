@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <time.h>
+#include <cmath>
 #include <chrono>
 
 #include <libgen.h>         // dirname
@@ -59,12 +60,13 @@ void openWindow(std::string fragName, std::string vertexName) {
 		
 		// Generate a cursor position to use in a shader (origin is bottom left)
 		sf::Vector2i cursorPos = sf::Mouse::getPosition() - window.getPosition();
-		cursorPos.y = window.getSize().y - cursorPos.y;
+		cursorPos.y = size.y - cursorPos.y;
 
 		// Generate a window position to use in a shader (origin is bottom left)
 		sf::Vector2i windowPos = window.getPosition();
-		windowPos.y = sf::VideoMode::getDesktopMode().height - windowPos.y - window.getSize().y;
+		windowPos.y = sf::VideoMode::getDesktopMode().height - windowPos.y - size.y;
 
+		float scrolldelta = 0;
 
 		// Poll for any events (clicking the window close button in this case)
 		sf::Event event;
@@ -82,8 +84,11 @@ void openWindow(std::string fragName, std::string vertexName) {
 
 					//std::cout << "Clicked at (" << cursorPos.x << ", " << cursorPos.y << ")" << std::endl;
 				}
-			}
-			else if (event.type == sf::Event::Resized) {
+			} else if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
+				scrolldelta = event.mouseWheelScroll.delta;
+
+
+			} else if (event.type == sf::Event::Resized) {
 				size.x = event.size.width;
 				size.y = event.size.height;
 
@@ -104,22 +109,8 @@ void openWindow(std::string fragName, std::string vertexName) {
 				delete backBuffer;
 				backBuffer = new sf::RenderTexture();
 				backBuffer->create(size.x, size.y);
-				
-				
-				
-				
 			}
 		}
-
-		// Set backbuffer to the current texture (before anything)
-		//backBuffer->clear();
-		//backBuffer->draw(sf::Sprite(texture->getTexture()));
-		//backBuffer->display();
-		//*backBuffer = texture->getTexture();
-
-
-		
-		//std::cout << "(" << windowPos.x << ", " << windowPos.y << ")" << std::endl;
 
 		// Pass variables to shaders for them to use
 		float time = std::chrono::duration_cast<milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() % 10000000 / 1000.f;
@@ -128,13 +119,14 @@ void openWindow(std::string fragName, std::string vertexName) {
 		shader.setUniform("resolution", sf::Glsl::Vec2(size));
 		shader.setUniform("cursor", sf::Glsl::Vec2(cursorPos));
 		shader.setUniform("frame", frame++);
+		shader.setUniform("scroll", scrolldelta);
+		shader.setUniform("spacebar", sf::Keyboard::isKeyPressed(sf::Keyboard::Space));
 		shader.setUniform("mouseL", sf::Mouse::isButtonPressed(sf::Mouse::Left));
 		shader.setUniform("mouseR", sf::Mouse::isButtonPressed(sf::Mouse::Right));
 		shader.setUniformArray("lastClicks", lastclicks, CLICK_CACHE_COUNT);
 		shader.setUniform("windowPos", sf::Glsl::Vec2(windowPos));
 		shader.setUniform("lastFrame", backBuffer->getTexture());
-		
-	//std::cout << "Texture size is " << texture->getSize().x << " by " << texture->getSize().y << "\t Window size is " << window.getSize().x << " by " << window.getSize().y << "\t Backbuffer size is " << backBuffer->getSize().x << " by " << backBuffer->getSize().y << std::endl;	
+			
 
 		// Draw the shader to the texture
 		texture->clear();
