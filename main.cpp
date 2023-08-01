@@ -19,8 +19,9 @@ using std::chrono::milliseconds;
 // Create a a new window
 void openWindow(std::string fragName, std::string vertexName) {
 	sf::RenderWindow window(sf::VideoMode(700, 700), std::string("Shaderpeek - ") + fragName);
+	window.setKeyRepeatEnabled(false);
 	window.setFramerateLimit(144);
-	window.setVerticalSyncEnabled(true);
+	//window.setVerticalSyncEnabled(true);
 	
 
 	// Create a shape as the shader's canvas
