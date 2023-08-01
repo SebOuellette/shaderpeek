@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Glsl.hpp>
+//#include <SFML/RenderTexture.hpp>
 #include <SFML/Window.hpp>
 #include <iostream>
 #include <string>
@@ -16,9 +17,10 @@ using std::chrono::milliseconds;
 
 // Create a a new window
 void openWindow(std::string fragName, std::string vertexName) {
-	sf::RenderWindow window(sf::VideoMode(700, 700), std::string("FragViewer - ") + fragName);
+	sf::RenderWindow window(sf::VideoMode(700, 700), std::string("Shaderpeek - ") + fragName);
 	window.setFramerateLimit(144);
-	window.setVerticalSyncEnabled(false);
+	window.setVerticalSyncEnabled(true);
+	
 
 	// Create a shape as the shader's canvas
 	sf::RectangleShape canvas((sf::Vector2f)window.getSize());
@@ -35,8 +37,26 @@ void openWindow(std::string fragName, std::string vertexName) {
 	sf::Glsl::Vec2 lastclicks[CLICK_CACHE_COUNT] = { sf::Glsl::Vec2(-1, -1) };
 	int clickIndex = 0;
 
+	
+	sf::RenderTexture* texture = new sf::RenderTexture();
+	if (!texture->create(window.getSize().x, window.getSize().y)) {
+		std::cerr << "Could not create render texture? Idk man." << std::endl;
+		exit(-1);
+	}
+
+	sf::RenderTexture* backBuffer = new sf::RenderTexture();
+	if (!backBuffer->create(window.getSize().x, window.getSize().y)) {
+		std::cerr << "Could not create back buffer texture." << std::endl;
+		exit(-1);
+	}
+
+	sf::Vector2 size = window.getSize();
+
+
 	// Active loop
 	while (window.isOpen()) {
+		
+		
 		// Generate a cursor position to use in a shader (origin is bottom left)
 		sf::Vector2i cursorPos = sf::Mouse::getPosition() - window.getPosition();
 		cursorPos.y = window.getSize().y - cursorPos.y;
@@ -49,9 +69,13 @@ void openWindow(std::string fragName, std::string vertexName) {
 		// Poll for any events (clicking the window close button in this case)
 		sf::Event event;
 		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::Closed)
+			if (event.type == sf::Event::Closed) {
+
+				delete backBuffer;
+				delete texture;
+
 				window.close();
-			if (event.type == sf::Event::MouseButtonPressed) {
+			} else if (event.type == sf::Event::MouseButtonPressed) {
 				if (event.mouseButton.button == sf::Mouse::Left) {
 					lastclicks[clickIndex++] = sf::Glsl::Vec2(cursorPos);
 					clickIndex %= CLICK_CACHE_COUNT;
@@ -59,26 +83,76 @@ void openWindow(std::string fragName, std::string vertexName) {
 					//std::cout << "Clicked at (" << cursorPos.x << ", " << cursorPos.y << ")" << std::endl;
 				}
 			}
+			else if (event.type == sf::Event::Resized) {
+				size.x = event.size.width;
+				size.y = event.size.height;
+
+
+				sf::FloatRect view(0, 0, size.x, size.y);
+        			window.setView(sf::View(view));
+
+				canvas.setSize(sf::Vector2f(size));
+
+				// Resize texture
+				delete texture;
+				texture = new sf::RenderTexture();
+				texture->create(size.x, size.y);
+
+			
+				
+				// Resize backBuffer
+				delete backBuffer;
+				backBuffer = new sf::RenderTexture();
+				backBuffer->create(size.x, size.y);
+				
+				
+				
+				
+			}
 		}
 
+		// Set backbuffer to the current texture (before anything)
+		//backBuffer->clear();
+		//backBuffer->draw(sf::Sprite(texture->getTexture()));
+		//backBuffer->display();
+		//*backBuffer = texture->getTexture();
+
+
+		
 		//std::cout << "(" << windowPos.x << ", " << windowPos.y << ")" << std::endl;
 
 		// Pass variables to shaders for them to use
 		float time = std::chrono::duration_cast<milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() % 10000000 / 1000.f;
 
 		shader.setUniform("time", time);
-		shader.setUniform("resolution", sf::Glsl::Vec2(window.getSize()));
+		shader.setUniform("resolution", sf::Glsl::Vec2(size));
 		shader.setUniform("cursor", sf::Glsl::Vec2(cursorPos));
 		shader.setUniform("frame", frame++);
 		shader.setUniform("mouseL", sf::Mouse::isButtonPressed(sf::Mouse::Left));
 		shader.setUniform("mouseR", sf::Mouse::isButtonPressed(sf::Mouse::Right));
 		shader.setUniformArray("lastClicks", lastclicks, CLICK_CACHE_COUNT);
 		shader.setUniform("windowPos", sf::Glsl::Vec2(windowPos));
+		shader.setUniform("lastFrame", backBuffer->getTexture());
+		
+	//std::cout << "Texture size is " << texture->getSize().x << " by " << texture->getSize().y << "\t Window size is " << window.getSize().x << " by " << window.getSize().y << "\t Backbuffer size is " << backBuffer->getSize().x << " by " << backBuffer->getSize().y << std::endl;	
 
-		// Clear the last frame, and draw the current one
+		// Draw the shader to the texture
+		texture->clear();
+		texture->draw(canvas, &shader);
+		texture->display();
+
+		// Clear the last frame, and draw the current texture
 		window.clear();
-		window.draw(canvas, &shader);
+		
+		sf::Sprite sprite(texture->getTexture()); // Convert the texture to a sprite to draw it
+		window.draw(sprite);
+		
 		window.display();
+
+		// Set backbuffer
+		backBuffer->clear();
+		backBuffer->draw(sprite);
+		backBuffer->display();
     }
 }
 
