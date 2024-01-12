@@ -74,8 +74,8 @@ void openWindow(std::string fragName, std::string vertexName) {
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed) {
 
-				delete backBuffer;
-				delete texture;
+				//delete backBuffer;
+				//delete texture;
 
 				window.close();
 			} else if (event.type == sf::Event::MouseButtonPressed) {
@@ -88,7 +88,9 @@ void openWindow(std::string fragName, std::string vertexName) {
 			} else if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
 				scrolldelta = event.mouseWheelScroll.delta;
 
-
+				if (scrolldelta*scrolldelta != 1) {
+					scrolldelta = 0;
+				}
 			} else if (event.type == sf::Event::Resized) {
 				size.x = event.size.width;
 				size.y = event.size.height;
