@@ -126,6 +126,10 @@ void openWindow(std::string fragName, std::string vertexName) {
 		shader.setUniform("spacebar", sf::Keyboard::isKeyPressed(sf::Keyboard::Space));
 		shader.setUniform("mouseL", sf::Mouse::isButtonPressed(sf::Mouse::Left));
 		shader.setUniform("mouseR", sf::Mouse::isButtonPressed(sf::Mouse::Right));
+		shader.setUniform("ctrlL", sf::Keyboard::isKeyPressed(sf::Keyboard::LControl));
+		shader.setUniform("ctrlR", sf::Keyboard::isKeyPressed(sf::Keyboard::RControl));
+		shader.setUniform("altL", sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt));
+		shader.setUniform("altR", sf::Keyboard::isKeyPressed(sf::Keyboard::RAlt));
 		shader.setUniformArray("lastClicks", lastclicks, CLICK_CACHE_COUNT);
 		shader.setUniform("windowPos", sf::Glsl::Vec2(windowPos));
 		shader.setUniform("lastFrame", backBuffer->getTexture());
